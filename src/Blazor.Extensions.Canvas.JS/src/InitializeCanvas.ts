@@ -5,7 +5,7 @@ namespace Canvas {
   // define what this extension adds to the window object inside BlazorExtensions
   const extensionObject = {
     Canvas2d: new ContextManager("2d"),
-    WebGL: new ContextManager("webgl")
+    WebGL: new ContextManager("webgl2")
   };
 
   export function initialize(): void {

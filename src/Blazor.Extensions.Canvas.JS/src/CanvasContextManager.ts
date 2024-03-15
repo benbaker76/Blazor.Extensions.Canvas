@@ -17,8 +17,8 @@ export class ContextManager {
     this.contextName = contextName;
     if (contextName === "2d")
       this.prototypes = CanvasRenderingContext2D.prototype;
-    else if (contextName === "webgl" || contextName === "experimental-webgl") {
-      this.prototypes = WebGLRenderingContext.prototype;
+    else if (contextName === "webgl2") {
+      this.prototypes = WebGL2RenderingContext.prototype;
       this.webGLContext = true;
     } else
       throw new Error(`Invalid context name: ${contextName}`);
