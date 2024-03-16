@@ -213,7 +213,30 @@ namespace Blazor.Extensions.Canvas.WebGL
         RGB = 0x1907,
         RGBA = 0x1908,
         LUMINANCE = 0x1909,
-        LUMINANCE_ALPHA = 0x190A
+        LUMINANCE_ALPHA = 0x190A,
+        R8 = 0x8229,
+        R16F = 0x822D,
+        R32F = 0x822E,
+        R8UI = 0x8232,
+        RG8 = 0x822B,
+        RG16F = 0x822F,
+        RG32F = 0x8230,
+        RGUI = 0x8238,
+        RGB8 = 0x8051,
+        SRGB8 = 0x8C41,
+        RGB565 = 0x8D62,
+        R11F_G11F_B10F = 0x8C3A,
+        RGB9_E5 = 0x8C3D,
+        RGB16F = 0x881B,
+        RGB32F = 0x8815,
+        RGB8UI = 0x8D7D,
+        RGBA8 = 0x8058,
+        SRGB8_ALPHA8 = 0x8C43,
+        RGB5_A1 = 0x8057,
+        RGBA4444 = 0x8056,
+        RGBA16F = 0x881A,
+        RGBA32F = 0x8814,
+        RGBA8UI = 0x8D7C,
     }
 
     public enum PixelType
@@ -275,11 +298,24 @@ namespace Blazor.Extensions.Canvas.WebGL
     {
         TEXTURE_2D = 0x0DE1,
         TEXTURE_CUBE_MAP = 0x8513,
+        TEXTURE_3D = 0x806F
     }
 
     public enum Texture2DType
     {
         TEXTURE_2D = 0x0DE1,
+        TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515,
+        TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516,
+        TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517,
+        TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518,
+        TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519,
+        TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A
+    }
+
+    public enum Texture3DType
+    {
+        TEXTURE_2D = 0x0DE1,
+        TEXTURE_3D = 0x806F,
         TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515,
         TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516,
         TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517,
@@ -391,7 +427,10 @@ namespace Blazor.Extensions.Canvas.WebGL
     {
         UNPACK_FLIP_Y_WEBGL = 0x9240,
         UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241,
-        UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243
+        UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243,
+        UNPACK_ROW_LENGTH = 0x0CF2,	
+        UNPACK_SKIP_ROWS = 0x0CF3,
+        UNPACK_SKIP_PIXELS = 0x0CF4,
     }
 
     public enum RenderbufferFormat

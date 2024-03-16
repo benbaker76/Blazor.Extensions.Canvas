@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -71,6 +72,8 @@ namespace Blazor.Extensions.Canvas.WebGL
         private const string BIND_TEXTURE = "bindTexture";
         private const string COPY_TEX_IMAGE_2D = "copyTexImage2D";
         private const string COPY_TEX_SUB_IMAGE_2D = "copyTexSubImage2D";
+        private const string COPY_TEX_IMAGE_3D = "copyTexImage3D";
+        private const string COPY_TEX_SUB_IMAGE_3D = "copyTexSubImage3D";
         private const string CREATE_TEXTURE = "createTexture";
         private const string DELETE_TEXTURE = "deleteTexture";
         private const string GENERATE_MIPMAP = "generateMipmap";
@@ -78,6 +81,9 @@ namespace Blazor.Extensions.Canvas.WebGL
         private const string IS_TEXTURE = "isTexture";
         private const string TEX_IMAGE_2D = "texImage2D";
         private const string TEX_SUB_IMAGE_2D = "texSubImage2D";
+        private const string TEX_IMAGE_3D = "texImage3D";
+        private const string TEX_SUB_IMAGE_3D = "texSubImage3D";
+        private const string TEX_STORAGE_3D = "texStorage3D";
         private const string TEX_PARAMETER_F = "texParameterf";
         private const string TEX_PARAMETER_I = "texParameteri";
         private const string ATTACH_SHADER = "attachShader";
@@ -385,6 +391,15 @@ namespace Blazor.Extensions.Canvas.WebGL
         public async Task CopyTexSubImage2DAsync(Texture2DType target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => await this.BatchCallAsync(COPY_TEX_SUB_IMAGE_2D, isMethodCall: true, target, level, xoffset, yoffset, x, y, width, height);
 
         [Obsolete("Use the async version instead, which is already called internally.")]
+        public void CopyTexImage3D(Texture3DType target, int level, PixelFormat format, int x, int y, int width, int height, int border) => this.CallMethod<object>(COPY_TEX_IMAGE_3D, target, level, format, x, y, width, height, border);
+        public async Task CopyTexImage3DAsync(Texture3DType target, int level, PixelFormat format, int x, int y, int width, int height, int border) => await this.BatchCallAsync(COPY_TEX_IMAGE_3D, isMethodCall: true, target, level, format, x, y, width, height, border);
+
+        [Obsolete("Use the async version instead, which is already called internally.")]
+        public void CopyTexSubImage3D(Texture3DType target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => this.CallMethod<object>(COPY_TEX_SUB_IMAGE_3D, target, level, xoffset, yoffset, x, y, width, height);
+        public async Task CopyTexSubImage3DAsync(Texture3DType target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => await this.BatchCallAsync(COPY_TEX_SUB_IMAGE_3D, isMethodCall: true, target, level, xoffset, yoffset, x, y, width, height);
+
+
+        [Obsolete("Use the async version instead, which is already called internally.")]
         public WebGLTexture CreateTexture() => this.CallMethod<WebGLTexture>(CREATE_TEXTURE);
         public async Task<WebGLTexture> CreateTextureAsync() => await this.CallMethodAsync<WebGLTexture>(CREATE_TEXTURE);
 
@@ -419,6 +434,26 @@ namespace Blazor.Extensions.Canvas.WebGL
         public async Task TexSubImage2DAsync<T>(Texture2DType target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, PixelType type, T[] pixels)
             where T : struct
             => await this.BatchCallAsync(TEX_SUB_IMAGE_2D, isMethodCall: true, target, level, xoffset, yoffset, width, height, format, type, pixels);
+
+        [Obsolete("Use the async version instead, which is already called internally.")]
+        public void TexImage3D<T>(Texture3DType target, int level, PixelFormat internalFormat, int width, int height, int depth, int border, PixelFormat format, PixelType type, T[] pixels)
+            where T : struct
+            => this.CallMethod<object>(TEX_IMAGE_3D, target, level, internalFormat, width, height, depth, border, format, type, pixels);
+        public async Task TexImage3DAsync<T>(Texture3DType target, int level, PixelFormat internalFormat, int width, int height, int depth, int border, PixelFormat format, PixelType type, T[] pixels)
+            where T : struct
+            => await this.BatchCallAsync(TEX_IMAGE_3D, isMethodCall: true, target, level, internalFormat, width, height, depth, border, format, type, pixels);
+
+        [Obsolete("Use the async version instead, which is already called internally.")]
+        public void TexSubImage3D<T>(Texture3DType target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, PixelFormat format, PixelType type, T[] pixels)
+            where T : struct
+            => this.CallMethod<object>(TEX_SUB_IMAGE_3D, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+        public async Task TexSubImage3DAsync<T>(Texture3DType target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, PixelFormat format, PixelType type, T[] pixels)
+            where T : struct
+            => await this.BatchCallAsync(TEX_SUB_IMAGE_3D, isMethodCall: true, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+
+        [Obsolete("Use the async version instead, which is already called internally.")]
+        public void TexStorage3D(Texture3DType target, int level, PixelFormat internalformat, int width, int height, int depth) => this.CallMethod<object>(TEX_STORAGE_3D, target, level, internalformat, width, height, depth);
+        public async Task TexStorage3DAsync(Texture3DType target, int level, PixelFormat internalformat, int width, int height, int depth) => await this.BatchCallAsync(TEX_STORAGE_3D, isMethodCall: true, target, level, internalformat, width, height, depth);
 
         [Obsolete("Use the async version instead, which is already called internally.")]
         public void TexParameter(TextureType target, TextureParameter pname, float param) => this.CallMethod<object>(TEX_PARAMETER_F, target, pname, param);
