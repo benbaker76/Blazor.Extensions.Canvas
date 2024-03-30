@@ -8,6 +8,12 @@ namespace Blazor.Extensions
     public class BECanvasComponent : ComponentBase
     {
         [Parameter]
+        public string Style { get; set; }
+
+        [Parameter]
+        public string Class { get; set; }
+
+        [Parameter]
         public long Height { get; set; }
 
         [Parameter]
