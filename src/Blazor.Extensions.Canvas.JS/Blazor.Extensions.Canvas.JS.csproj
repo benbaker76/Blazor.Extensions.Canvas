@@ -13,6 +13,7 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <Authors>Blazor Extensions Contributors</Authors>
     <Product>Blazor Extensions</Product>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
