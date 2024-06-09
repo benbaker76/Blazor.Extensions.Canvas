@@ -431,6 +431,7 @@ namespace Blazor.Extensions.Canvas.WebGL
         UNPACK_ROW_LENGTH = 0x0CF2,	
         UNPACK_SKIP_ROWS = 0x0CF3,
         UNPACK_SKIP_PIXELS = 0x0CF4,
+        UNPACK_ALIGNMENT = 0x0CF5
     }
 
     public enum RenderbufferFormat
