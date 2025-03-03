@@ -43,7 +43,7 @@ namespace Blazor.Extensions.Canvas.Test.UnitTests
             ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
             // Act
-            var moduleJsInterop = ctx.JSInterop.SetupModule("blazor.extensions.canvas.js");
+            var moduleJsInterop = ctx.JSInterop.SetupModule("InitializeCanvas.js");
             var canvasCtx = await cut.Instance.CreateCanvas2DAsync();
             await canvasCtx.SetFontAsync("16px Courier");
             var txtMtr = await canvasCtx.MeasureTextAsync("t");
