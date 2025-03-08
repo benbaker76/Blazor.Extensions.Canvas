@@ -160,7 +160,7 @@ window["BlazorExtensions"] = {
     this.WebGL.canvas = canvas;
 
     if (this._resizeObserver) {
-      this._resizeObserver.disconnect()
+      this._resizeObserver.disconnect();
     }
 
     this._resizeObserver = new ResizeObserver(() => this.debouncedResizeCanvas());
@@ -171,18 +171,15 @@ window["BlazorExtensions"] = {
     this._canvas.focus();
   },
 
-  takeScreenshot() {
-    this._canvas.toBlob(blob => {
-      let reader = new FileReader();
-      reader.readAsArrayBuffer(blob);
-      reader.onloadend = () => {
-        let bytes = new Uint8Array(reader.result);
-        const url = URL.createObjectURL(blob);
-        if (this._dotNetInstance) {
-          await this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
-        }
-      };
-    });
+  async takeScreenshot() {
+    const blob = await new Promise(resolve => this._canvas.toBlob(resolve));
+    if (!blob) return;
+
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const url = URL.createObjectURL(blob);
+
+    await this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
   },
 
   setCursor(value) {
@@ -211,7 +208,7 @@ window["BlazorExtensions"] = {
     }, 250);
   },
 
-  resizeCanvas() {
+  async resizeCanvas() {
     if (!this._canvas || !this._dotNetInstance) return;
 
     let devicePixelRatio = window.devicePixelRatio || 1;
