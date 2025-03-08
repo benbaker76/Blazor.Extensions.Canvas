@@ -179,7 +179,7 @@ window["BlazorExtensions"] = {
         let bytes = new Uint8Array(reader.result);
         const url = URL.createObjectURL(blob);
         if (this._dotNetInstance) {
-          this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
+          await this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
         }
       };
     });
@@ -218,6 +218,6 @@ window["BlazorExtensions"] = {
     let w = Math.floor(this._canvas.clientWidth * devicePixelRatio);
     let h = Math.floor(this._canvas.clientHeight * devicePixelRatio);
 
-    this._dotNetInstance.invokeMethodAsync("ResizeCanvas", w, h);
+    await this._dotNetInstance.invokeMethodAsync("ResizeCanvas", w, h);
   }
 };
