@@ -35,8 +35,7 @@ Install-Package Blazor.Extensions.Canvas
 In your `index.html` file (WebAssembly Apps) or `_Host.cshtml` (Server Apps) file, place a reference to the library's script file:
 
 ```html
-<script type="module" src="_content/Blazor.Extensions.Canvas/CanvasContextManager.js"></script>
-<script type="module" src="_content/Blazor.Extensions.Canvas/InitializeCanvas.js"></script>
+<script type="module" src="_content/Blazor.Extensions.Canvas/BlazorExtensions.Canvas.js"></script>
 ```
 
 In your `_Imports.razor` add the following `using` entry:

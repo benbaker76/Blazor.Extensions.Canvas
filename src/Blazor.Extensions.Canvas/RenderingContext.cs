@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,29 +11,27 @@ namespace Blazor.Extensions
 {
     public abstract class RenderingContext : IDisposable
     {
-        private const string NAMESPACE_PREFIX = "BlazorExtensions";
-        private const string GET_PROPERTY_ACTION = "getProperty";
-        private const string CALL_METHOD_ACTION = "call";
-        private const string CALL_BATCH_ACTION = "callBatch";
-        private const string ADD_ACTION = "add";
-        private const string REMOVE_ACTION = "remove";
         private readonly List<object[]> _batchedCallObjects = new();
         private readonly string _contextName;
         private readonly IJSRuntime _jsRuntime;
         private readonly object _parameters;
         private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
+        private readonly DotNetObjectReference<RenderingContext> _dotNetInstance;
 
         private bool _awaitingBatchedCall;
         private bool _batching;
         private bool _initialized;
-
         public ElementReference Canvas { get; }
+
+        public event Func<Size, Task> CanvasResized;
+        public event Func<ScreenshotEventArgs, Task> ScreenshotReceived;
 
         internal RenderingContext(BECanvasComponent reference, string contextName, object parameters = null)
         {
+            this._dotNetInstance = DotNetObjectReference.Create(this);
             this.Canvas = reference.CanvasReference;
-            this._contextName = contextName;
             this._jsRuntime = reference.JSRuntime;
+            this._contextName = contextName;
             this._parameters = parameters;
         }
 
@@ -42,9 +42,11 @@ namespace Blazor.Extensions
         internal async Task<RenderingContext> InitializeAsync()
         {
             await this._semaphoreSlim.WaitAsync();
+            await this._jsRuntime.InvokeVoidAsync("BlazorExtensions.initialize", this._dotNetInstance, this.Canvas);
+
             if (!this._initialized)
             {
-                await this._jsRuntime.InvokeAsync<object>($"{NAMESPACE_PREFIX}.{this._contextName}.{ADD_ACTION}", this.Canvas, this._parameters);
+                await this._jsRuntime.InvokeVoidAsync($"BlazorExtensions.{this._contextName}.add", this._parameters);
                 await this.ExtendedInitializeAsync();
                 this._initialized = true;
             }
@@ -52,7 +54,20 @@ namespace Blazor.Extensions
             return this;
         }
 
-        #region Protected Methods
+        protected async Task<T> GetPropertyAsync<T>(string property)
+        {
+            return await this._jsRuntime.InvokeAsync<T>($"BlazorExtensions.{this._contextName}.getProperty", property);
+        }
+
+        protected async Task<T> CallMethodAsync<T>(string method)
+        {
+            return await this._jsRuntime.InvokeAsync<T>($"BlazorExtensions.{this._contextName}.call", method);
+        }
+
+        protected async Task<T> CallMethodAsync<T>(string method, params object[] value)
+        {
+            return await this._jsRuntime.InvokeAsync<T>($"BlazorExtensions.{this._contextName}.call", method, value);
+        }
 
         public async Task BeginBatchAsync()
         {
@@ -88,29 +103,42 @@ namespace Blazor.Extensions
             }
         }
 
-        protected async Task<T> GetPropertyAsync<T>(string property)
+        public async Task TakeScreenshotAsync()
         {
-            return await this._jsRuntime.InvokeAsync<T>($"{NAMESPACE_PREFIX}.{this._contextName}.{GET_PROPERTY_ACTION}", this.Canvas, property);
+            await this._jsRuntime.InvokeVoidAsync("BlazorExtensions.takeScreenshot");
         }
 
-        protected T CallMethod<T>(string method)
+        public async Task FocusAsync()
         {
-            return this.CallMethodAsync<T>(method).GetAwaiter().GetResult();
+            await this._jsRuntime.InvokeVoidAsync("BlazorExtensions.focusCanvas");
         }
 
-        protected async Task<T> CallMethodAsync<T>(string method)
+        public async Task<Rectangle> GetBoundingClientRectAsync()
         {
-            return await this._jsRuntime.InvokeAsync<T>($"{NAMESPACE_PREFIX}.{this._contextName}.{CALL_METHOD_ACTION}", this.Canvas, method);
+            try
+            {
+                return await this._jsRuntime.InvokeAsync<Rectangle>("BlazorExtensions.getBoundingClientRect");
+            }
+            catch (JSException)
+            {
+                return Rectangle.Empty;
+            }
         }
 
-        protected T CallMethod<T>(string method, params object[] value)
+        public async Task<Size> GetCanvasSizeAsync()
         {
-            return this.CallMethodAsync<T>(method, value).GetAwaiter().GetResult();
+            return await this._jsRuntime.InvokeAsync<Size>("BlazorExtensions.getCanvasSize");
         }
 
-        protected async Task<T> CallMethodAsync<T>(string method, params object[] value)
+        public async Task SetCursorAsync(string cursor)
         {
-            return await this._jsRuntime.InvokeAsync<T>($"{NAMESPACE_PREFIX}.{this._contextName}.{CALL_METHOD_ACTION}", this.Canvas, method, value);
+            await this._jsRuntime.InvokeVoidAsync("BlazorExtensions.setCursor", cursor);
+        }
+
+        public async Task ResetWebGL()
+        {
+            await this._jsRuntime.InvokeVoidAsync($"BlazorExtensions.{this._contextName}.resetWebGL");
+            await this.ExtendedInitializeAsync();
         }
 
         private async Task BatchCallInnerAsync()
@@ -120,7 +148,7 @@ namespace Blazor.Extensions
             this._batchedCallObjects.Clear();
             this._semaphoreSlim.Release();
 
-            _ = await this._jsRuntime.InvokeAsync<object>($"{NAMESPACE_PREFIX}.{this._contextName}.{CALL_BATCH_ACTION}", this.Canvas, currentBatch);
+            _ = await this._jsRuntime.InvokeAsync<object>($"BlazorExtensions.{this._contextName}.callBatch", (object)currentBatch);
 
             await this._semaphoreSlim.WaitAsync();
             this._awaitingBatchedCall = false;
@@ -128,12 +156,41 @@ namespace Blazor.Extensions
             this._semaphoreSlim.Release();
         }
 
-        public void Dispose()
+        [JSInvokable]
+        public async Task ResizeCanvas()
         {
-            Task.Run(async () => await this._jsRuntime.InvokeAsync<object>($"{NAMESPACE_PREFIX}.{this._contextName}.{REMOVE_ACTION}", this.Canvas));
-            GC.SuppressFinalize(this);
+            if (this.CanvasResized != null)
+            {
+                var size = await this._jsRuntime.InvokeAsync<Size>("BlazorExtensions.getCanvasSize");
+                await this.CanvasResized(new Size(Math.Max(size.Width, 1), Math.Max(size.Height, 1)));
+            }
         }
 
-        #endregion
+        [JSInvokable]
+        public async Task ReceiveScreenshot(string url, byte[] bytes)
+        {
+            if (this.ScreenshotReceived != null)
+            {
+                await this.ScreenshotReceived(new ScreenshotEventArgs(url, bytes));
+            }
+        }
+
+        public void Dispose()
+        {
+            Task.Run(async () => await this._jsRuntime.InvokeVoidAsync($"BlazorExtensions.{this._contextName}.remove"));
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    public class ScreenshotEventArgs
+    {
+        public string Url { get; set; }
+        public byte[] Bytes { get; set; }
+
+        public ScreenshotEventArgs(string url, byte[] bytes)
+        {
+            this.Url = url;
+            this.Bytes = bytes;
+        }
     }
 }

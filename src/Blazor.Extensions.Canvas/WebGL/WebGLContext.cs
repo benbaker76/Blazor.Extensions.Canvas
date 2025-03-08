@@ -12,7 +12,8 @@ namespace Blazor.Extensions.Canvas.WebGL
         public int DrawingBufferHeight { get; private set; }
         #endregion
 
-        public WebGLContext(BECanvasComponent reference, WebGLContextAttributes attributes = null) : base(reference, "WebGL", attributes)
+        public WebGLContext(BECanvasComponent reference, WebGLContextAttributes attributes = null)
+            : base(reference, "WebGL", attributes)
         {
         }
 
@@ -103,9 +104,9 @@ namespace Blazor.Extensions.Canvas.WebGL
 
         public async Task BufferDataAsync(BufferType target, int size, BufferUsageHint usage) => await this.BatchCallAsync("bufferData", isMethodCall: true, target, size, usage);
 
-        public async Task BufferDataAsync<T>(BufferType target, T[] data, BufferUsageHint usage) => await this.BatchCallAsync("bufferData", isMethodCall: true, target, this.ConvertToByteArray(data), usage);
+        public async Task BufferDataAsync<T>(BufferType target, T[] data, BufferUsageHint usage) where T : unmanaged => await this.BatchCallAsync("bufferData", true, target, MemoryMarshal.AsBytes(data.AsSpan()).ToArray(), usage);
 
-        public async Task BufferSubDataAsync<T>(BufferType target, uint offset, T[] data) => await this.BatchCallAsync("bufferSubData", isMethodCall: true, target, offset, this.ConvertToByteArray(data));
+        public async Task BufferSubDataAsync<T>(BufferType target, uint offset, T[] data) where T : unmanaged => await this.BatchCallAsync("bufferSubData", isMethodCall: true, target, offset, MemoryMarshal.AsBytes(data.AsSpan()).ToArray());
 
         public async Task<WebGLBuffer> CreateBufferAsync() => await this.CallMethodAsync<WebGLBuffer>("createBuffer");
 
@@ -337,13 +338,6 @@ namespace Blazor.Extensions.Canvas.WebGL
         public async Task FinishAsync() => await this.BatchCallAsync("finish", isMethodCall: true);
 
         public async Task FlushAsync() => await this.BatchCallAsync("flush", isMethodCall: true);
-
-        private byte[] ConvertToByteArray<T>(T[] arr)
-        {
-            byte[] byteArr = new byte[arr.Length * Marshal.SizeOf<T>()];
-            Buffer.BlockCopy(arr, 0, byteArr, 0, byteArr.Length);
-            return byteArr;
-        }
 
         #endregion
     }
