@@ -150,7 +150,6 @@ window["BlazorExtensions"] = {
   _dotNetInstance: null,
   _canvas: null,
   _resizeObserver: null,
-  _resizeTimeout: null,
 
   initialize(dotNetInstance, canvas) {
     this._dotNetInstance = dotNetInstance;
@@ -160,10 +159,10 @@ window["BlazorExtensions"] = {
     this.WebGL.canvas = canvas;
 
     if (this._resizeObserver) {
-      this._resizeObserver.disconnect()
+      this._resizeObserver.disconnect();
     }
 
-    this._resizeObserver = new ResizeObserver(() => this.debouncedResizeCanvas());
+    this._resizeObserver = new ResizeObserver(() => this.resizeCanvas());
     this._resizeObserver.observe(this._canvas);
   },
 
@@ -171,18 +170,15 @@ window["BlazorExtensions"] = {
     this._canvas.focus();
   },
 
-  takeScreenshot() {
-    this._canvas.toBlob(blob => {
-      let reader = new FileReader();
-      reader.readAsArrayBuffer(blob);
-      reader.onloadend = () => {
-        let bytes = new Uint8Array(reader.result);
-        const url = URL.createObjectURL(blob);
-        if (this._dotNetInstance) {
-          this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
-        }
-      };
-    });
+  async takeScreenshot() {
+    const blob = await new Promise(resolve => this._canvas.toBlob(resolve));
+    if (!blob) return;
+
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const url = URL.createObjectURL(blob);
+
+    await this._dotNetInstance.invokeMethodAsync('ReceiveScreenshot', url, bytes);
   },
 
   setCursor(value) {
@@ -203,21 +199,13 @@ window["BlazorExtensions"] = {
     };
   },
 
-  debouncedResizeCanvas() {
-    clearTimeout(this._resizeTimeout);
-
-    this._resizeTimeout = setTimeout(() => {
-      this.resizeCanvas();
-    }, 250);
-  },
-
-  resizeCanvas() {
+  async resizeCanvas() {
     if (!this._canvas || !this._dotNetInstance) return;
 
     let devicePixelRatio = window.devicePixelRatio || 1;
     let w = Math.floor(this._canvas.clientWidth * devicePixelRatio);
     let h = Math.floor(this._canvas.clientHeight * devicePixelRatio);
 
-    this._dotNetInstance.invokeMethodAsync("ResizeCanvas", w, h);
+    await this._dotNetInstance.invokeMethodAsync("ResizeCanvas", w, h);
   }
 };
